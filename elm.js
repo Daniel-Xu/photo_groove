@@ -7897,20 +7897,55 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _user$project$PhotoGroove$sizeToClass = function (size) {
+	var _p0 = size;
+	switch (_p0.ctor) {
+		case 'Small':
+			return 'small';
+		case 'Medium':
+			return 'med';
+		default:
+			return 'large';
+	}
+};
+var _user$project$PhotoGroove$sizeToString = function (size) {
+	var _p1 = size;
+	switch (_p1.ctor) {
+		case 'Small':
+			return 'small';
+		case 'Medium':
+			return 'medium';
+		default:
+			return 'large';
+	}
+};
 var _user$project$PhotoGroove$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		if (_p0.ctor === 'SelectPhoto') {
-			return _elm_lang$core$Native_Utils.update(
-				model,
-				{selectedUrl: _p0._0});
-		} else {
-			return _elm_lang$core$Native_Utils.update(
-				model,
-				{selectedUrl: _p0._0});
+		var _p2 = msg;
+		switch (_p2.ctor) {
+			case 'SelectPhoto':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{selectedUrl: _p2._0});
+			case 'Surprise':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{selectedUrl: _p2._0});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{chosenSize: _p2._0});
 		}
 	});
 var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
+var _user$project$PhotoGroove$Photo = function (a) {
+	return {url: a};
+};
+var _user$project$PhotoGroove$Model = F3(
+	function (a, b, c) {
+		return {photos: a, selectedUrl: b, chosenSize: c};
+	});
+var _user$project$PhotoGroove$Large = {ctor: 'Large'};
 var _user$project$PhotoGroove$initialModel = {
 	photos: _elm_lang$core$Native_List.fromArray(
 		[
@@ -7918,16 +7953,45 @@ var _user$project$PhotoGroove$initialModel = {
 			{url: '2.jpeg'},
 			{url: '3.jpeg'}
 		]),
-	selectedUrl: '1.jpeg'
+	selectedUrl: '1.jpeg',
+	chosenSize: _user$project$PhotoGroove$Large
 };
 var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
-var _user$project$PhotoGroove$Photo = function (a) {
-	return {url: a};
+var _user$project$PhotoGroove$getPhotoUrl = function (index) {
+	var _p3 = A2(_elm_lang$core$Array$get, index, _user$project$PhotoGroove$photoArray);
+	if (_p3.ctor === 'Just') {
+		return _p3._0.url;
+	} else {
+		return '';
+	}
 };
-var _user$project$PhotoGroove$Model = F2(
-	function (a, b) {
-		return {photos: a, selectedUrl: b};
-	});
+var _user$project$PhotoGroove$Medium = {ctor: 'Medium'};
+var _user$project$PhotoGroove$Small = {ctor: 'Small'};
+var _user$project$PhotoGroove$ChooseSize = function (a) {
+	return {ctor: 'ChooseSize', _0: a};
+};
+var _user$project$PhotoGroove$viewSizeChooser = function (size) {
+	return A2(
+		_elm_lang$html$Html$label,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$input,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$type$('radio'),
+						_elm_lang$html$Html_Attributes$name('size'),
+						_elm_lang$html$Html_Events$onClick(
+						_user$project$PhotoGroove$ChooseSize(size))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[])),
+				_elm_lang$html$Html$text(
+				_user$project$PhotoGroove$sizeToString(size))
+			]));
+};
 var _user$project$PhotoGroove$Surprise = function (a) {
 	return {ctor: 'Surprise', _0: a};
 };
@@ -7986,10 +8050,31 @@ var _user$project$PhotoGroove$view = function (model) {
 						_elm_lang$html$Html$text('Suprise Me')
 					])),
 				A2(
+				_elm_lang$html$Html$h3,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Thumbnail Size: ')
+					])),
+				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$id('tumbnails')
+						_elm_lang$html$Html_Attributes$id('choose-size')
+					]),
+				A2(
+					_elm_lang$core$List$map,
+					_user$project$PhotoGroove$viewSizeChooser,
+					_elm_lang$core$Native_List.fromArray(
+						[_user$project$PhotoGroove$Small, _user$project$PhotoGroove$Medium, _user$project$PhotoGroove$Large]))),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$id('thumbnails'),
+						_elm_lang$html$Html_Attributes$class(
+						_user$project$PhotoGroove$sizeToClass(model.chosenSize))
 					]),
 				A2(
 					_elm_lang$core$List$map,
