@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
 import Array exposing (Array)
+import Random
 
 
 -- model
@@ -69,27 +70,36 @@ getPhotoUrl index =
             ""
 
 
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
+
+
 
 -- update
 
 
 type Msg
     = SelectPhoto String
-    | Surprise String
+    | Surprise
     | ChooseSize ThumbnailSize
+    | SelectByIndex Int
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SelectPhoto url ->
-            { model | selectedUrl = url }
+            ( { model | selectedUrl = url }, Cmd.none )
 
-        Surprise url ->
-            { model | selectedUrl = url }
+        Surprise ->
+            ( model, Random.generate SelectByIndex randomPhotoPicker )
 
         ChooseSize size ->
-            { model | chosenSize = size }
+            ( { model | chosenSize = size }, Cmd.none )
+
+        SelectByIndex index ->
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
 
 
 
@@ -139,7 +149,7 @@ view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ h1 [] [ text "Photo Groove" ]
-        , button [ onClick (Surprise "2.jpeg") ] [ text "Suprise Me" ]
+        , button [ onClick Surprise ] [ text "Suprise Me" ]
         , h3 [] [ text "Thumbnail Size: " ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
@@ -156,8 +166,9 @@ view model =
 
 main : Program Never
 main =
-    App.beginnerProgram
-        { model = initialModel
+    App.program
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = (\model -> Sub.none)
         }
