@@ -3,7 +3,6 @@ module PhotoGroove exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.App as App
 import Array exposing (Array)
 import Random
 
@@ -136,7 +135,7 @@ viewSizeChooser : ThumbnailSize -> Html Msg
 viewSizeChooser size =
     label []
         [ input
-            [ type' "radio"
+            [ type_ "radio"
             , name "size"
             , onClick (ChooseSize size)
             ]
@@ -149,13 +148,13 @@ view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ h1 [] [ text "Photo Groove" ]
-        , button [ onClick Surprise ] [ text "Suprise Me" ]
+        , button [ onClick Surprise ] [ text "Surprise Me" ]
         , h3 [] [ text "Thumbnail Size: " ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
         , div
             [ id "thumbnails", class (sizeToClass model.chosenSize) ]
-            (List.map (viewThumbnail model.selectedUrl) initialModel.photos)
+            (List.map (viewThumbnail model.selectedUrl) model.photos)
         , img
             [ class "large"
             , src (urlPrefix ++ "large/" ++ model.selectedUrl)
@@ -164,9 +163,9 @@ view model =
         ]
 
 
-main : Program Never
+main : Program Never Model Msg
 main =
-    App.program
+    Html.program
         { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
