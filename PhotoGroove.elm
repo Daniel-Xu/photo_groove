@@ -1,17 +1,23 @@
 module PhotoGroove exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (Array)
 import Random
+import Http
+import Html.Attributes exposing (id, class, classList, src, name, type_, title)
+import Json.Decode exposing (string, int, list, Decoder)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 
 
 -- model
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
 
 
 type alias Model =
@@ -46,10 +52,19 @@ viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selectedUrl photo =
     img
         [ src (urlPrefix ++ photo.url)
+        , title (photo.title ++ " [" ++ toString photo.size ++ " KB]")
         , classList [ ( "selected", selectedUrl == Just photo.url ) ]
         , onClick (SelectPhoto photo.url)
         ]
         []
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    decode Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "(untitiled)"
 
 
 
@@ -61,6 +76,7 @@ type Msg
     | Surprise
     | ChooseSize ThumbnailSize
     | SelectByIndex Int
+    | LoadPhotos (Result Http.Error (List Photo))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -89,6 +105,17 @@ update msg model =
                         |> Maybe.map .url
             in
                 ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
+
+        LoadPhotos (Ok photos) ->
+            ( { model
+                | photos = photos
+                , selectedUrl = Maybe.map .url (List.head photos)
+              }
+            , Cmd.none
+            )
+
+        LoadPhotos (Err _) ->
+            ( { model | loadingError = Just "Error! (try turning it off and on again)" }, Cmd.none )
 
 
 
@@ -134,6 +161,19 @@ viewSizeChooser size =
         ]
 
 
+viewOrError : Model -> Html Msg
+viewOrError model =
+    case model.loadingError of
+        Nothing ->
+            view model
+
+        Just errorMessage ->
+            div [ class "error-message" ]
+                [ h1 [] [ text "Photo Groove" ]
+                , p [] [ text errorMessage ]
+                ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "content" ]
@@ -161,11 +201,18 @@ viewLarge maybeUrl =
                 []
 
 
+initialCmd : Cmd Msg
+initialCmd =
+    list photoDecoder
+        |> Http.get "http://elm-in-action.com/photos/list.json"
+        |> Http.send LoadPhotos
+
+
 main : Program Never Model Msg
 main =
     Html.program
-        { init = ( initialModel, Cmd.none )
-        , view = view
+        { init = ( initialModel, initialCmd )
+        , view = viewOrError
         , update = update
-        , subscriptions = (\model -> Sub.none)
+        , subscriptions = (\_ -> Sub.none)
         }
